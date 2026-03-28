@@ -27,11 +27,13 @@ def create_app():
     api = Api(app)
 
     from app.routes.auth import AuthRegister
+    from app.routes.auth import AuthLogin
 
     from app.models.user import User
     from app.models.post import Post
     from app.models.comment import Comment
 
     api.add_resource(AuthRegister, '/api/v1/auth/register')
+    api.add_resource(AuthLogin, '/api/v1/auth/login')
 
     return app
