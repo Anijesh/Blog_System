@@ -1,7 +1,7 @@
 from app import db
 from datetime import datetime
 
-class Post(db.Model):
+class Comment(db.Model):
     __tablename__ = 'posts'
 
     id = db.Column(db.Integer, primary_key = True)
