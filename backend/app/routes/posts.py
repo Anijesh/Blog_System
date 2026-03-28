@@ -68,3 +68,18 @@ class PostDetail(Resource):
             post.content = data["content"]
         db.session.commit()
         return {"message": "Post updated successfully"}, 200
+    
+    @jwt_required()
+    def delete(self, post_id):
+        current_user_id = get_jwt_identity()
+        claims = get_jwt()
+        post = Post.query.get(post_id)
+
+        if not post:
+            return {"message": "Post not found"}, 404
+        if post.user_id != int(current_user_id) and claims.get("role") != "admin":
+            return {"message": "Not authorized to delete this post"}, 403
+        
+        db.session.delete(post)
+        db.session.commit()
+        return {"message": "Post deleted successfully"}, 200
