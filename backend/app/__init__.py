@@ -6,6 +6,7 @@ from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 from flasgger import Swagger
 from app.config import Config
+from flask_restful import Api
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -23,8 +24,14 @@ def create_app():
     CORS(app)
     Swagger(app)
 
+    api = Api(app)
+
+    from app.routes.auth import AuthRegister
+
     from app.models.user import User
     from app.models.post import Post
     from app.models.comment import Comment
+
+    api.add_resource(AuthRegister, '/api/v1/auth/register')
 
     return app
