@@ -47,3 +47,24 @@ class PostDetail(Resource):
             "user_id": post.user_id,
             "created_at": str(post.created_at)
         }, 200
+    
+    @jwt_required()
+    def put(self, post_id):
+        current_user_id = get_jwt_identity()
+        post = Post.query.get(post_id)
+        if not post:
+            return {"message": "Post not found"}, 404
+        if post.user_id != int(current_user_id):
+            return {"message": "You can only edit your own posts"}, 403
+        data = request.get_json()
+
+        if not data:
+            return {"message": "No data provided"}, 400
+        
+        if "title" in data:
+            post.title = data["title"]
+
+        if "content" in data:
+            post.content = data["content"]
+        db.session.commit()
+        return {"message": "Post updated successfully"}, 200
