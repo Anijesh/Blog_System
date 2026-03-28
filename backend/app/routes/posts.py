@@ -18,3 +18,19 @@ class PostList(Resource):
                 "created_at": str(post.created_at)
             })
         return result, 200
+    @jwt_required()
+    def post(self):
+        data = request.get_json()
+        current_user = get_jwt_identity()
+        if not data:
+            return {"message": "Data is missing"},400
+        if 'title' not in data or 'content' not in data:
+            return {"message": "title or content missing"}, 400
+        post = Post(
+            title = data['title'],
+            content = data['content'],
+            user_id = current_user,
+        )
+        db.session.add(post)
+        db.session.commit()
+        return {"message": "Post created successfully"}, 201
