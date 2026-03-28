@@ -11,6 +11,8 @@ class User(db.Model):
     role = db.Column(db.String(20),default = "user")
     created_at = db.Column(db.DateTime,default = datetime.utcnow)
 
+    posts = db.relationship('Post', backref='author', lazy=True, cascade='all, delete')
+    comments = db.relationship('Comment', backref='author', lazy=True, cascade='all, delete')
 
     def to_dict(self):
         return{
