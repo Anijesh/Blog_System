@@ -34,3 +34,16 @@ class PostList(Resource):
         db.session.add(post)
         db.session.commit()
         return {"message": "Post created successfully"}, 201
+
+class PostDetail(Resource):
+    def get(self,post_id):
+        post = Post.query.get(post_id)
+        if not post:
+            return {"message": "Post not found"}, 404
+        return {
+            "id": post.id,
+            "title": post.title,
+            "content": post.content,
+            "user_id": post.user_id,
+            "created_at": str(post.created_at)
+        }, 200

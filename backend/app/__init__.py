@@ -29,6 +29,7 @@ def create_app():
     from app.routes.auth import AuthRegister
     from app.routes.auth import AuthLogin
     from app.routes.posts import PostList
+    from app.routes.posts import PostDetail
 
     from app.models.user import User
     from app.models.post import Post
@@ -37,5 +38,6 @@ def create_app():
     api.add_resource(AuthRegister, '/api/v1/auth/register')
     api.add_resource(AuthLogin, '/api/v1/auth/login')
     api.add_resource(PostList,'/api/v1/posts')
+    api.add_resource(PostDetail,'/api/v1/posts/<post_id>')
 
     return app
