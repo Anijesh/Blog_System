@@ -15,6 +15,7 @@ class PostList(Resource):
                 "title": post.title,
                 "content": post.content,
                 "user_id": post.user_id,
+                "user_name": post.author.name,
                 "created_at": str(post.created_at)
             })
         return result, 200
@@ -45,6 +46,7 @@ class PostDetail(Resource):
             "title": post.title,
             "content": post.content,
             "user_id": post.user_id,
+            "user_name": post.author.name,
             "created_at": str(post.created_at)
         }, 200
     

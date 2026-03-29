@@ -19,6 +19,7 @@ class CommentList(Resource):
                 "id": comment.id,
                 "content": comment.content,
                 "user_id": comment.user_id,
+                "user_name": comment.author.name,
                 "post_id": comment.post_id,
                 "created_at": str(comment.created_at)
             })
