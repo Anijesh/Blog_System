@@ -3,10 +3,11 @@ import useSWR from "swr";
 import { fetcher } from "../lib/api";
 import { formatDistanceToNow } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, MessageCircle, Heart, Share, CalendarDays } from "lucide-react";
+import { ArrowLeft, MessageCircle, Share, CalendarDays } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import LikeButton from "@/components/LikeButton";
 
 export default function UserProfile() {
   const { id } = useParams();
@@ -144,11 +145,7 @@ export default function UserProfile() {
                            <MessageCircle className="h-5 w-5" />
                          </div>
                       </button>
-                      <button className="flex items-center gap-2 hover:text-pink-500 transition-colors group">
-                        <div className="p-2 rounded-full group-hover:bg-pink-500/10 transition-colors">
-                           <Heart className="h-5 w-5" />
-                         </div>
-                      </button>
+                      <LikeButton postId={post.id} initialLikes={post.likes} />
                       <button className="flex items-center gap-2 hover:text-green-500 transition-colors group">
                         <div className="p-2 rounded-full group-hover:bg-green-500/10 transition-colors">
                            <Share className="h-5 w-5" />

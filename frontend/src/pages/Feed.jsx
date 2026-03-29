@@ -8,7 +8,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MessageCircle, Heart, Share, MoreHorizontal } from "lucide-react";
+import { MessageCircle, Share, MoreHorizontal } from "lucide-react";
+import LikeButton from "@/components/LikeButton";
 import { toast } from "sonner";
 
 export default function Feed() {
@@ -77,11 +78,7 @@ export default function Feed() {
                            <MessageCircle className="h-5 w-5" />
                          </div>
                       </button>
-                      <button className="flex items-center gap-2 hover:text-pink-500 transition-colors group">
-                        <div className="p-2 rounded-full group-hover:bg-pink-500/10 transition-colors">
-                           <Heart className="h-5 w-5" />
-                         </div>
-                      </button>
+                      <LikeButton postId={post.id} initialLikes={post.likes} />
                       <button className="flex items-center gap-2 hover:text-green-500 transition-colors group">
                         <div className="p-2 rounded-full group-hover:bg-green-500/10 transition-colors">
                            <Share className="h-5 w-5" />

@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
+import LikeButton from "@/components/LikeButton";
 import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
@@ -171,6 +172,12 @@ export default function PostDetail() {
                 <h1 className="text-2xl font-bold mb-3">{post.title}</h1>
             )}
             <p className="text-xl leading-relaxed whitespace-pre-wrap">{post.content}</p>
+            <div className="mt-6 flex items-center gap-4 text-muted-foreground">
+              <LikeButton postId={post.id} initialLikes={post.likes} />
+              {post.likes > 0 && (
+                <span className="text-sm font-medium">{post.likes} Likes</span>
+              )}
+            </div>
           </div>
         )}
       </motion.article>
