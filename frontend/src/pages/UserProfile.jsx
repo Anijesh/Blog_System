@@ -3,7 +3,7 @@ import useSWR from "swr";
 import { fetcher } from "../lib/api";
 import { formatDistanceToNow } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, MessageCircle, Share, CalendarDays } from "lucide-react";
+import { ArrowLeft, MessageCircle, Share, CalendarDays, Mail, ShieldAlert } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,9 +15,14 @@ export default function UserProfile() {
   // We fetch all posts because there isn't a specific user posts endpoint in backend
   const { data: posts, error, isLoading } = useSWR("/posts", fetcher);
 
+  const isOwnProfile = id === localStorage.getItem("user_id");
+  const { data: myProfile } = useSWR(isOwnProfile ? "/user" : null, fetcher);
+  const profileData = myProfile?.[0];
+
   if (error) return <div className="p-4 text-center text-red-500">Failed to load profile.</div>;
 
   const userPosts = posts ? posts.filter((p) => p.user_id === parseInt(id)) : [];
+  const displayName = profileData?.name || userPosts[0]?.user_name || `User ${id}`;
 
   return (
     <div className="flex flex-col w-full min-h-screen">
@@ -27,7 +32,7 @@ export default function UserProfile() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex flex-col">
-          <h2 className="font-bold text-xl leading-tight">{userPosts[0]?.user_name || `User ${id}`}</h2>
+          <h2 className="font-bold text-xl leading-tight">{displayName}</h2>
           <span className="text-sm text-muted-foreground">{userPosts.length} posts</span>
         </div>
       </div>
@@ -39,7 +44,7 @@ export default function UserProfile() {
           <div className="flex justify-between items-end -mt-16 mb-4 relative z-10 w-full">
              <div className="p-1 rounded-full bg-background">
                <Avatar className="h-32 w-32 border-4 border-background">
-                 <AvatarImage src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${userPosts[0]?.user_name || id}`} alt="avatar" />
+                 <AvatarImage src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${displayName}`} alt="avatar" />
                  <AvatarFallback className="bg-primary text-primary-foreground text-4xl font-bold">U{id}</AvatarFallback>
                </Avatar>
              </div>
@@ -49,12 +54,26 @@ export default function UserProfile() {
              </div>
           </div>
 
-          <div className="mt-2">
-            <h1 className="text-2xl font-bold">{userPosts[0]?.user_name || `User ${id}`}</h1>
-            <p className="text-muted-foreground">@user{id}</p>
+          <div className="mt-2 flex items-center gap-3">
+             <h1 className="text-2xl font-bold">{displayName}</h1>
+             {profileData?.role && (
+                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                   profileData.role === 'admin' ? 'bg-primary/20 text-primary' : 'bg-secondary text-secondary-foreground'
+                }`}>
+                   {profileData.role === 'admin' && <ShieldAlert className="h-3 w-3" />}
+                   {profileData.role.charAt(0).toUpperCase() + profileData.role.slice(1)}
+                </span>
+             )}
           </div>
+          <p className="text-muted-foreground">@user{id}</p>
           
           <div className="mt-4 text-[15px] space-y-4 text-foreground/90">
+             {profileData?.email && (
+                <div className="flex items-center gap-2 font-medium">
+                   <Mail className="h-4 w-4 text-muted-foreground" />
+                   <span>{profileData.email}</span>
+                </div>
+             )}
              <p className="leading-relaxed whitespace-pre-wrap">Minimalist content creator. Sharing thoughts, code, and design on this beautiful platform.</p>
              <div className="flex items-center gap-2 text-muted-foreground mt-4">
                 <CalendarDays className="h-4 w-4" />

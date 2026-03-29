@@ -5,6 +5,7 @@ import Register from "./pages/Register";
 import Feed from "./pages/Feed";
 import PostDetail from "./pages/PostDetail";
 import UserProfile from "./pages/UserProfile";
+import AdminDashboard from "./pages/AdminDashboard";
 
 export default function App() {
   const token = localStorage.getItem("token");
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/feed" element={<Feed />} />
         <Route path="/post/:id" element={<PostDetail />} />
         <Route path="/user/:id" element={<UserProfile />} />
+        <Route path="/admin" element={<AdminDashboard />} />
       </Route>
     </Routes>
   );

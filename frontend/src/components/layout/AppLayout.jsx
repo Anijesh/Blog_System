@@ -1,5 +1,5 @@
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
-import { PenSquare, Home, User, LogOut, Sun, Moon, Hash } from "lucide-react";
+import { PenSquare, Home, User, LogOut, Sun, Moon, Hash, ShieldCheck } from "lucide-react";
 import { useTheme } from "../theme-provider";
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -62,9 +62,12 @@ export default function AppLayout() {
     }
   };
 
+  const role = localStorage.getItem("role");
+
   const navItems = [
     { name: "Home", href: "/feed", icon: Home },
     ...(userId ? [{ name: "Profile", href: `/user/${userId}`, icon: User }] : []),
+    ...(role === "admin" ? [{ name: "Admin", href: "/admin", icon: ShieldCheck }] : []),
   ];
 
   return (
