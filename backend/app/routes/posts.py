@@ -4,6 +4,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from app.models.post import Post
 from app.models.user import User
 from app.models.like import Like
+from app.models import Comment
 from app import db
 
 class PostList(Resource):
@@ -12,6 +13,7 @@ class PostList(Resource):
         result = []
         for post in posts:
             like_count = Like.query.filter_by(post_id=post.id).count()
+            comment_count = Comment.query.filter_by(post_id=post.id).count()
 
             result.append({
                 "id": post.id,
@@ -20,6 +22,7 @@ class PostList(Resource):
                 "user_id": post.user_id,
                 "user_name": post.author.name,
                 "likes": like_count,   
+                "comments_count": comment_count,
                 "created_at": str(post.created_at)
             })
         return result, 200
@@ -54,6 +57,7 @@ class PostDetail(Resource):
             return {"message": "Post not found"}, 404
 
         like_count = Like.query.filter_by(post_id=post.id).count()
+        comment_count = Comment.query.filter_by(post_id=post.id).count()
 
         return {
             "id": post.id,
@@ -62,6 +66,7 @@ class PostDetail(Resource):
             "user_id": post.user_id,
             "user_name": post.author.name,
             "likes": like_count,  
+            "comments_count": comment_count,
             "created_at": str(post.created_at)
         }, 200
     

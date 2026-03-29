@@ -66,9 +66,7 @@ export default function LikeButton({ postId, initialLikes }) {
       >
         <Heart className={`h-5 w-5 ${hasLiked ? "fill-current" : ""}`} />
       </div>
-      {(likesCount > 0) && (
-        <span className="text-sm font-medium">{likesCount}</span>
-      )}
+      <span className="text-sm font-medium">{likesCount || 0}</span>
     </button>
   );
 }
