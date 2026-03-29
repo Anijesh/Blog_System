@@ -30,6 +30,7 @@ def create_app():
     from app.routes.auth import AuthLogin
     from app.routes.posts import PostList
     from app.routes.posts import PostDetail
+    from app.routes.comments import CommentList
 
     from app.models.user import User
     from app.models.post import Post
@@ -39,5 +40,6 @@ def create_app():
     api.add_resource(AuthLogin, '/api/v1/auth/login')
     api.add_resource(PostList,'/api/v1/posts')
     api.add_resource(PostDetail,'/api/v1/posts/<post_id>')
+    api.add_resource(CommentList,'/api/v1/comments/<post_id>')
 
     return app
