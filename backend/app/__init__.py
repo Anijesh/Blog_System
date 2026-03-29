@@ -33,6 +33,7 @@ def create_app():
     from app.routes.comments import CommentList
     from app.routes.comments import CommentDetail
     from app.routes.admin import AdminUserList
+    from app.routes.admin import AdminUserDelete
 
     from app.models.user import User
     from app.models.post import Post
@@ -45,5 +46,6 @@ def create_app():
     api.add_resource(CommentList,'/api/v1/comments/<post_id>')
     api.add_resource(CommentDetail,'/api/v1/comments/<comment_id>')
     api.add_resource(AdminUserList,'/api/v1/admin/users')
+    api.add_resource(AdminUserDelete,'/api/v1/admin/users/<user_id>')
 
     return app

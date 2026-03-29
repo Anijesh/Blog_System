@@ -22,3 +22,18 @@ class AdminUserList(Resource):
             })
         return result, 200
 
+class AdminUserDelete(Resource):
+    @jwt_required()
+    def delete(self, user_id):
+        claims = get_jwt()
+        if claims.get("role") != "admin":
+            return {"message": "Admin access required"}, 403
+        user = User.query.get(user_id)
+        if not user:
+            return {"message": "User not found"}, 404
+        if user.role == 'admin':
+            return {"message":"Admin can't be deleted"}, 403
+        db.session.delete(user)
+        db.session.commit()
+        return {"message": "User deleted successfully"}, 200
+
