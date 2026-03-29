@@ -22,7 +22,23 @@ def create_app():
     jwt.init_app(app)
     bcrypt.init_app(app)
     CORS(app)
-    Swagger(app)
+    swagger_template = {
+        "swagger": "2.0",
+        "info": {
+            "title": "Blog System API",
+            "description": "API Documentation with JWT Authentication",
+            "version": "1.0"
+        },
+        "securityDefinitions": {
+            "BearerAuth": {
+                "type": "apiKey",
+                "name": "Authorization",
+                "in": "header",
+                "description": "JWT Authorization header using the Bearer scheme. Example: 'Bearer {token}'"
+            }
+        }
+    }
+    Swagger(app, template=swagger_template)
 
     api = Api(app)
 
