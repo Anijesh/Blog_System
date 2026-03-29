@@ -1,5 +1,5 @@
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
-import { PenSquare, Home, User, LogOut, Sun, Moon, Hash, ShieldCheck } from "lucide-react";
+import { PenSquare, Home, User, LogOut, Sun, Moon, Hash, ShieldCheck, TrendingUp, Terminal, Layers } from "lucide-react";
 import { useTheme } from "../theme-provider";
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import api from "../../lib/api";
 import { toast } from "sonner";
-import { mutate } from "swr";
+import useSWR, { mutate } from "swr";
+import { fetcher } from "../../lib/api";
 
 export default function AppLayout() {
   const { theme, setTheme } = useTheme();
@@ -69,6 +70,20 @@ export default function AppLayout() {
     ...(userId ? [{ name: "Profile", href: `/user/${userId}`, icon: User }] : []),
     ...(role === "admin" ? [{ name: "Admin", href: "/admin", icon: ShieldCheck }] : []),
   ];
+
+  const { data: posts } = useSWR("/posts", fetcher);
+  
+  // Compute top creators dynamically from current cache
+  const userPostCounts = {};
+  if (posts) {
+     posts.forEach(post => {
+        if (!userPostCounts[post.user_id]) {
+           userPostCounts[post.user_id] = { id: post.user_id, name: post.user_name || `User ${post.user_id}`, count: 0 };
+        }
+        userPostCounts[post.user_id].count++;
+     });
+  }
+  const topCreators = Object.values(userPostCounts).sort((a, b) => b.count - a.count).slice(0, 4);
 
   return (
     <div className="flex justify-center min-h-screen bg-background text-foreground transition-colors duration-200">
@@ -169,7 +184,7 @@ export default function AppLayout() {
       </header>
 
       {/* Main Content Area */}
-      <main className="w-full max-w-[600px] border-x border-border sm:ml-0 min-h-screen pb-20 sm:pb-0">
+      <main className="w-full max-w-[600px] border-x border-border/40 sm:ml-0 min-h-screen pb-20 sm:pb-0">
         <div className="flex items-center justify-between sm:hidden p-4 border-b border-border sticky top-0 bg-background/80 backdrop-blur-md z-40">
            <Hash className="h-7 w-7 text-primary" />
            <div className="flex gap-4">
@@ -214,15 +229,76 @@ export default function AppLayout() {
         <Outlet />
       </main>
 
-      {/* Right Sidebar Placeholder (Trending/Suggestions) */}
-      <aside className="hidden lg:block w-[350px] pl-8 py-6 sticky top-0 h-screen">
-        <div className="rounded-2xl bg-muted/50 p-6 border border-border">
-          <h2 className="font-bold text-xl mb-4">What's happening</h2>
-          <p className="text-muted-foreground text-sm leading-relaxed">
-            Minimalist tech-driven design inspired by modern sensibilities.
-            Focused on fast server responses and high-fidelity UIs.
-          </p>
+      {/* Right Sidebar - Beautifully Reintegrated */}
+      <aside className="hidden lg:block w-[350px] pl-8 py-6 sticky top-0 h-screen overflow-y-auto overflow-x-hidden">
+        
+        {/* Top Creators Widget */}
+        <div className="rounded-2xl border border-border/50 bg-background/50 backdrop-blur-xl mb-6 overflow-hidden relative group transition-all duration-300 hover:border-primary/30">
+           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+           <div className="p-5 relative z-10">
+              <h2 className="font-bold text-lg mb-4 flex items-center gap-2">
+                 <TrendingUp className="h-5 w-5 text-primary" /> Top Creators
+              </h2>
+              <div className="flex flex-col gap-4">
+                 {topCreators.length > 0 ? topCreators.map((creator) => (
+                    <Link to={`/user/${creator.id}`} key={creator.id} className="flex items-center justify-between group/user">
+                       <div className="flex items-center gap-3">
+                         <Avatar className="h-10 w-10 transition-transform group-hover/user:scale-105 border border-border/50">
+                           <AvatarImage src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${creator.name}`} />
+                           <AvatarFallback>U</AvatarFallback>
+                         </Avatar>
+                         <div className="flex flex-col">
+                           <span className="font-bold text-sm group-hover/user:underline">{creator.name}</span>
+                           <span className="text-xs text-muted-foreground">{creator.count} posts</span>
+                         </div>
+                       </div>
+                       <Button variant="ghost" size="sm" className="h-8 rounded-full text-xs font-semibold px-4 opacity-0 group-hover/user:opacity-100 transition-opacity">View</Button>
+                    </Link>
+                 )) : (
+                    <div className="text-sm text-muted-foreground text-center py-4">No data yet</div>
+                 )}
+              </div>
+           </div>
         </div>
+
+        {/* Project Architecture Post */}
+        <div className="rounded-2xl bg-gradient-to-br from-muted/40 to-background border border-border/50 p-6 relative overflow-hidden group">
+           <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/10 rounded-full blur-2xl group-hover:bg-primary/20 transition-colors duration-500" />
+           <h2 className="font-bold text-lg mb-2 flex items-center gap-2 relative z-10">
+              <Layers className="h-5 w-5 text-primary" /> System Architecture
+           </h2>
+           <p className="text-muted-foreground text-sm leading-relaxed mb-4 relative z-10">
+             A highly-responsive fullstack monolith. Built for ultimate speed and minimal visual clutter.
+           </p>
+           <div className="flex flex-wrap gap-2 relative z-10">
+              <div className="px-3 py-1.5 rounded-full bg-blue-500/10 text-blue-500 text-xs font-bold font-mono flex items-center gap-1 border border-blue-500/20">
+                 REACT 19
+              </div>
+              <div className="px-3 py-1.5 rounded-full bg-green-500/10 text-green-500 text-xs font-bold font-mono flex items-center gap-1 border border-green-500/20">
+                 FLASK
+              </div>
+              <div className="px-3 py-1.5 rounded-full bg-orange-500/10 text-orange-500 text-xs font-bold font-mono flex items-center gap-1 border border-orange-500/20">
+                 SWR CACHE
+              </div>
+              <div className="px-3 py-1.5 rounded-full bg-purple-500/10 text-purple-500 text-xs font-bold font-mono flex items-center gap-1 border border-purple-500/20">
+                 SQLAlchemy
+              </div>
+           </div>
+           
+           <div className="mt-5 pt-4 border-t border-border/50 flex items-center justify-between relative z-10 text-xs text-muted-foreground font-mono">
+              <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" /> Edge Ready</span>
+              <span>v1.0.0</span>
+           </div>
+        </div>
+
+        <div className="mt-6 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground/60 px-2 justify-center">
+           <a href="#" className="hover:underline">Terms of Service</a>
+           <a href="#" className="hover:underline">Privacy Policy</a>
+           <a href="#" className="hover:underline">Cookie Policy</a>
+           <a href="#" className="hover:underline">Accessibility</a>
+           <span>© 2026 BlogStack</span>
+        </div>
+
       </aside>
     </div>
   );
