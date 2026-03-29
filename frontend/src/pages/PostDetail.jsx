@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import LikeButton from "@/components/LikeButton";
 import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export default function PostDetail() {
   const { id } = useParams();
@@ -22,6 +23,7 @@ export default function PostDetail() {
   
   const { data: post, error: postError } = useSWR(`/posts/${id}`, fetcher);
   const { data: comments, error: commentsError, mutate: mutateComments } = useSWR(`/comments/${id}`, fetcher);
+  const { data: likeStats } = useSWR(`/posts/${id}/likestats`, fetcher);
 
   const [commentContent, setCommentContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -174,8 +176,34 @@ export default function PostDetail() {
             <p className="text-xl leading-relaxed whitespace-pre-wrap">{post.content}</p>
             <div className="mt-6 flex items-center gap-4 text-muted-foreground">
               <LikeButton postId={post.id} initialLikes={post.likes} />
-              {post.likes > 0 && (
-                <span className="text-sm font-medium">{post.likes} Likes</span>
+              {(likeStats?.total_likes || post.likes) > 0 && (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <span className="text-sm font-medium hover:underline cursor-pointer hover:text-foreground transition-colors">
+                      {likeStats?.total_likes || post.likes} Likes
+                    </span>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md border-border rounded-2xl">
+                    <DialogHeader>
+                      <DialogTitle className="text-xl font-bold">Liked by</DialogTitle>
+                    </DialogHeader>
+                    <div className="flex flex-col gap-2 mt-4 max-h-[50vh] overflow-y-auto pr-2">
+                       {likeStats?.liked_by?.length > 0 ? (
+                         likeStats.liked_by.map(user => (
+                            <Link key={user.user_id} to={`/user/${user.user_id}`} className="flex items-center gap-3 hover:bg-muted/50 p-2 rounded-xl transition-colors">
+                               <Avatar className="h-10 w-10">
+                                  <AvatarImage src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${user.name || user.user_id}`} />
+                                  <AvatarFallback>U{user.user_id}</AvatarFallback>
+                               </Avatar>
+                               <span className="font-bold hover:underline text-lg">{user.name || `User ${user.user_id}`}</span>
+                            </Link>
+                         ))
+                       ) : (
+                         <div className="text-center text-muted-foreground p-4">Loading...</div>
+                       )}
+                    </div>
+                  </DialogContent>
+                </Dialog>
               )}
             </div>
           </div>
