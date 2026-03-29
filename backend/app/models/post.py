@@ -14,3 +14,4 @@ class Post(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     comments = db.relationship('Comment', backref='post', lazy=True, cascade="all, delete")
+    likes = db.relationship("Like", backref="post", lazy=True, cascade="all, delete")

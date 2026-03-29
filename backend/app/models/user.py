@@ -13,3 +13,4 @@ class User(db.Model):
 
     posts = db.relationship('Post', backref='author', lazy=True, cascade="all, delete")
     comments = db.relationship('Comment', backref='author', lazy=True, cascade="all, delete")
+    likes = db.relationship("Like", backref="user", lazy=True, cascade="all, delete")
