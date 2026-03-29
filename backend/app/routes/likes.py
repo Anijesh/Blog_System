@@ -26,7 +26,33 @@ class PostLike(Resource):
 
         return {"message": "Post liked"}, 201
     
+    @jwt_required()
+    def delete(self, post_id):
+        user_id = get_jwt_identity()
+
+        like = Like.query.filter_by(user_id=user_id, post_id=post_id).first()
+        if not like:
+            return {"message": "Like not found"}, 404
+        db.session.delete(like)
+        db.session.commit()
+        return {"message": "Post unliked"}, 200
     
+
+
+class PostLikeList(Resource):
+    def get(self, post_id):
+        likes = Like.query.filter_by(post_id=post_id).all()
+        result = []
+        for like in likes:
+            user = User.query.get(like.user_id)
+            result.append({
+                "user_id": user.id,
+                "name": user.name
+            })
+        return {
+            "total_likes": len(likes),
+            "liked_by": result
+        }, 200
 
 
    
