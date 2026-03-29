@@ -69,3 +69,22 @@ class CommentDetail(Resource):
         db.session.commit()
 
         return {"message": "Comment updated successfully"}, 200
+
+    @jwt_required()
+    def delete(self, comment_id):
+        current_user_id = get_jwt_identity()
+        claims = get_jwt()
+        role = claims.get("role")
+
+        comment = Comment.query.get(comment_id)
+
+        if not comment:
+            return {"message": "Comment not found"}, 404
+
+        if comment.user_id != int(current_user_id) and role != "admin":
+            return {"message": "Not authorized to delete this comment"}, 403
+
+        db.session.delete(comment)
+        db.session.commit()
+
+        return {"message": "Comment deleted successfully"}, 200
