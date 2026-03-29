@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 export default function UserProfile() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const currentUserId = localStorage.getItem("user_id");
   const role = localStorage.getItem("role");
 
