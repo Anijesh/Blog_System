@@ -1,19 +1,66 @@
+import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import useSWR from "swr";
-import { fetcher } from "../lib/api";
+import api, { fetcher } from "../lib/api";
 import { formatDistanceToNow } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, MessageCircle, Share, CalendarDays, Mail, ShieldAlert } from "lucide-react";
+import { ArrowLeft, MessageCircle, Share, CalendarDays, Mail, ShieldAlert, Edit2, Trash2, MoreHorizontal } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import LikeButton from "@/components/LikeButton";
+import { toast } from "sonner";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function UserProfile() {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const currentUserId = localStorage.getItem("user_id");
+  const role = localStorage.getItem("role");
+
   // We fetch all posts because there isn't a specific user posts endpoint in backend
-  const { data: posts, error, isLoading } = useSWR("/posts", fetcher);
+  const { data: posts, error, isLoading, mutate } = useSWR("/posts", fetcher);
+
+  const [editingPostId, setEditingPostId] = useState(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
+
+  const handleDeleteUser = async () => {
+    if (!window.confirm("Are you highly sure you want to completely delete this user?")) return;
+    try {
+      await api.delete(`/admin/users/${id}`);
+      toast.success("User deleted successfully.");
+      navigate("/admin");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to delete user.");
+    }
+  };
+
+  const handleDeletePost = async (e, postId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+    try {
+      await api.delete(`/posts/${postId}`);
+      toast.success("Post deleted");
+      mutate();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to delete post");
+    }
+  };
+
+  const handleUpdatePost = async (e, postId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await api.put(`/posts/${postId}`, { title: editTitle, content: editContent });
+      toast.success("Post updated");
+      setEditingPostId(null);
+      mutate();
+    } catch (err) {
+      toast.error("Failed to update post");
+    }
+  };
 
   const isOwnProfile = id === localStorage.getItem("user_id");
   const { data: myProfile } = useSWR(isOwnProfile ? "/user" : null, fetcher);
@@ -48,8 +95,12 @@ export default function UserProfile() {
                  <AvatarFallback className="bg-primary text-primary-foreground text-4xl font-bold">U{id}</AvatarFallback>
                </Avatar>
              </div>
-             {/* Follow Button Placeholder */}
-             <div className="pt-16">
+             <div className="pt-16 flex gap-2">
+               {role === 'admin' && parseInt(id) !== parseInt(currentUserId) && (
+                 <Button variant="destructive" className="rounded-full font-bold px-6" onClick={handleDeleteUser}>
+                   Delete User
+                 </Button>
+               )}
                <Button className="rounded-full font-bold px-6">Follow</Button>
              </div>
           </div>
@@ -144,22 +195,79 @@ export default function UserProfile() {
                      </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col min-w-0 flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-bold hover:underline truncate">{post.user_name || `User ${post.user_id}`}</span>
-                      <span className="text-muted-foreground text-sm">·</span>
-                      <span className="text-muted-foreground text-sm whitespace-nowrap">
-                        {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
-                      </span>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold hover:underline truncate">{post.user_name || `User ${post.user_id}`}</span>
+                        <span className="text-muted-foreground text-sm">·</span>
+                        <span className="text-muted-foreground text-sm whitespace-nowrap">
+                          {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                        </span>
+                      </div>
+
+                      {((currentUserId && parseInt(currentUserId) === post.user_id) || role === "admin") && (
+                        <div onClick={(e) => e.preventDefault()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-muted-foreground"><MoreHorizontal className="h-4 w-4" /></Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              {parseInt(currentUserId) === post.user_id && (
+                                <DropdownMenuItem onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingPostId(post.id);
+                                  setEditTitle(post.title || "");
+                                  setEditContent(post.content);
+                                }}>
+                                  <Edit2 className="mr-2 h-4 w-4" /> Edit
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem onClick={(e) => handleDeletePost(e, post.id)} className="text-red-500 hover:text-red-600 focus:text-red-600">
+                                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      )}
                     </div>
-                    {post.title && post.title !== "Untitled Post" && (
-                       <h3 className="font-bold text-lg mb-1">{post.title}</h3>
+                    
+                    {editingPostId === post.id ? (
+                      <div className="space-y-3 mt-2" onClick={(e) => e.preventDefault()}>
+                        <input 
+                          className="w-full bg-transparent border border-border p-2 rounded-md font-bold text-lg" 
+                          value={editTitle} 
+                          onChange={(e) => setEditTitle(e.target.value)} 
+                          placeholder="Title" 
+                        />
+                         <Textarea 
+                           value={editContent} 
+                           onChange={(e)=>setEditContent(e.target.value)} 
+                           className="min-h-[100px] text-base"
+                         />
+                         <div className="flex gap-2 justify-end">
+                           <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setEditingPostId(null); }}>Cancel</Button>
+                           <Button size="sm" onClick={(e) => handleUpdatePost(e, post.id)}>Save</Button>
+                         </div>
+                      </div>
+                    ) : (
+                      <>
+                        {post.title && post.title !== "Untitled Post" && (
+                           <h3 className="font-bold text-lg mb-1">{post.title}</h3>
+                        )}
+                        <p className="text-foreground/90 whitespace-pre-wrap break-words leading-relaxed text-[15px] sm:text-base">
+                          {post.content}
+                        </p>
+                      </>
                     )}
-                    <p className="text-foreground/90 whitespace-pre-wrap break-words leading-relaxed text-[15px] sm:text-base">
-                      {post.content}
-                    </p>
                     
                     <div className="flex justify-between items-center mt-4 text-muted-foreground max-w-sm" onClick={(e) => e.preventDefault()}>
-                      <button className="flex items-center gap-2 hover:text-primary transition-colors group">
+                      <button 
+                         className="flex items-center gap-2 hover:text-primary transition-colors group"
+                         onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            navigate(`/post/${post.id}`);
+                         }}
+                      >
                          <div className="p-2 rounded-full group-hover:bg-primary/10 transition-colors">
                            <MessageCircle className="h-5 w-5" />
                          </div>

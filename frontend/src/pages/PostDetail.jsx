@@ -28,6 +28,10 @@ export default function PostDetail() {
   const [commentContent, setCommentContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  // For Edit Comment
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editingCommentContent, setEditingCommentContent] = useState("");
+
   // For Edit Post
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState("");
@@ -68,6 +72,18 @@ export default function PostDetail() {
       mutateComments();
     } catch (err) {
        toast.error(err.response?.data?.message || "Failed to delete comment");
+    }
+  };
+
+  const handleUpdateComment = async (commentId) => {
+    if (!editingCommentContent.trim()) return;
+    try {
+      await api.put(`/comments/${commentId}`, { content: editingCommentContent.trim() });
+      toast.success("Comment updated");
+      setEditingCommentId(null);
+      mutateComments();
+    } catch (err) {
+       toast.error(err.response?.data?.message || "Failed to update comment");
     }
   };
 
@@ -250,19 +266,48 @@ export default function PostDetail() {
                       <AvatarFallback className="bg-muted text-sm font-semibold">U{comment.user_id}</AvatarFallback>
                     </Avatar>
                   </Link>
-                  <div className="flex flex-col w-full">
+                   <div className="flex flex-col w-full">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                          <Link to={`/user/${comment.user_id}`} className="font-bold hover:underline">{comment.user_name || `User ${comment.user_id}`}</Link>
                          <span className="text-muted-foreground text-sm">· {formatDistanceToNow(new Date(comment.created_at))}</span>
                       </div>
                       {(isCommentOwner || isAdmin) && (
-                         <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-muted-foreground hover:text-red-500" onClick={() => handleDeleteComment(comment.id)}>
-                            <Trash2 className="h-4 w-4" />
-                         </Button>
+                         <DropdownMenu>
+                           <DropdownMenuTrigger asChild>
+                             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-muted-foreground"><MoreHorizontal className="h-4 w-4" /></Button>
+                           </DropdownMenuTrigger>
+                           <DropdownMenuContent align="end">
+                             {isCommentOwner && (
+                               <DropdownMenuItem onClick={() => {
+                                 setEditingCommentId(comment.id);
+                                 setEditingCommentContent(comment.content);
+                               }}>
+                                 <Edit2 className="mr-2 h-4 w-4" /> Edit
+                               </DropdownMenuItem>
+                             )}
+                             <DropdownMenuItem onClick={() => handleDeleteComment(comment.id)} className="text-red-500 hover:text-red-600 focus:text-red-600">
+                               <Trash2 className="mr-2 h-4 w-4" /> Delete
+                             </DropdownMenuItem>
+                           </DropdownMenuContent>
+                         </DropdownMenu>
                       )}
                     </div>
-                    <p className="mt-1 whitespace-pre-wrap text-[15px] sm:text-base text-foreground/90">{comment.content}</p>
+                    {editingCommentId === comment.id ? (
+                       <div className="mt-2 space-y-3">
+                         <Textarea 
+                           value={editingCommentContent} 
+                           onChange={(e) => setEditingCommentContent(e.target.value)} 
+                           className="min-h-[60px] text-[15px] sm:text-base p-2"
+                         />
+                         <div className="flex gap-2 justify-end">
+                           <Button variant="outline" size="sm" onClick={() => setEditingCommentId(null)}>Cancel</Button>
+                           <Button size="sm" onClick={() => handleUpdateComment(comment.id)}>Save</Button>
+                         </div>
+                       </div>
+                    ) : (
+                       <p className="mt-1 whitespace-pre-wrap text-[15px] sm:text-base text-foreground/90">{comment.content}</p>
+                    )}
                   </div>
                </div>
              )
