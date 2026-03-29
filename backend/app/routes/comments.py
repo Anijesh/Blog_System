@@ -23,3 +23,26 @@ class CommentList(Resource):
                 "created_at": str(comment.created_at)
             })
         return result, 200
+    
+
+    @jwt_required()
+    def post(self, post_id):
+        post = Post.query.get(post_id)
+        if not post:
+            return {"message": "Post not found"}, 404
+        data = request.get_json()
+        current_user_id = get_jwt_identity()
+        if not data:
+            return {"message": "No data provided"}, 400
+        
+        if "content" not in data:
+            return {"message": "Content is required"}, 400
+
+        comment = Comment(
+            content=data["content"],
+            user_id=int(current_user_id),
+            post_id=post_id
+        )
+        db.session.add(comment)
+        db.session.commit()
+        return {"message": "Comment added successfully"}, 201
