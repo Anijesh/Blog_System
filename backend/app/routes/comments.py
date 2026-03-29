@@ -46,3 +46,26 @@ class CommentList(Resource):
         db.session.add(comment)
         db.session.commit()
         return {"message": "Comment added successfully"}, 201
+
+
+class CommentDetail(Resource):
+
+    @jwt_required()
+    def put(self, comment_id):
+        current_user_id = get_jwt_identity()
+        comment = Comment.query.get(comment_id)
+        if not comment:
+            return {"message": "Comment not found"}, 404
+
+        if comment.user_id != int(current_user_id):
+            return {"message": "You can only edit your own comments"}, 403
+        
+        data = request.get_json()
+        if not data:
+            return {"message": "No data provided"}, 400
+        
+        if "content" in data:
+            comment.content = data["content"]
+        db.session.commit()
+
+        return {"message": "Comment updated successfully"}, 200
