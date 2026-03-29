@@ -6,6 +6,19 @@ from app import db
 class UserProfile(Resource):
     @jwt_required()
     def get(self):
+        """
+        Get current user profile
+        ---
+        tags:
+          - User Profile
+        security:
+          - BearerAuth: []
+        responses:
+          200:
+            description: User profile and posts
+          401:
+            description: Unauthorized
+        """
         current_user_id = int(get_jwt_identity())
         user = User.query.get(current_user_id)
         posts = Post.query.filter_by(user_id = current_user_id)

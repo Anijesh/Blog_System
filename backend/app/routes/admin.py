@@ -7,6 +7,19 @@ from app import db
 class AdminUserList(Resource):
     @jwt_required()
     def get(self):
+        """
+        Get all users
+        ---
+        tags:
+          - Admin
+        security:
+          - BearerAuth: []
+        responses:
+          200:
+            description: List of all users
+          403:
+            description: Admin access required
+        """
         claims = get_jwt()
         if claims.get("role") != "admin":
             return {"message": "Admin access required"}, 403
@@ -25,6 +38,27 @@ class AdminUserList(Resource):
 class AdminUserDelete(Resource):
     @jwt_required()
     def delete(self, user_id):
+        """
+        Delete a user
+        ---
+        tags:
+          - Admin
+        security:
+          - BearerAuth: []
+        parameters:
+          - name: user_id
+            in: path
+            type: integer
+            required: true
+            description: ID of the user to delete
+        responses:
+          200:
+            description: User deleted successfully
+          403:
+            description: Admin access required or Cannot delete admin
+          404:
+            description: User not found
+        """
         claims = get_jwt()
         if claims.get("role") != "admin":
             return {"message": "Admin access required"}, 403

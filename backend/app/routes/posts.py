@@ -9,6 +9,15 @@ from app import db
 
 class PostList(Resource):
     def get(self):
+        """
+        Get all posts
+        ---
+        tags:
+          - Posts
+        responses:
+          200:
+            description: List of posts
+        """
         posts = Post.query.all()
         result = []
         for post in posts:
@@ -29,6 +38,30 @@ class PostList(Resource):
     
     @jwt_required()
     def post(self):
+        """
+        Create a new post
+        ---
+        tags:
+          - Posts
+        security:
+          - BearerAuth: []
+        parameters:
+          - in: body
+            name: body
+            required: true
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+        responses:
+          201:
+            description: Post created successfully
+          400:
+            description: Data is missing or incomplete
+        """
         data = request.get_json()
         current_user = get_jwt_identity()
         if not data:
@@ -51,6 +84,23 @@ class PostList(Resource):
 
 class PostDetail(Resource):
     def get(self, post_id):
+        """
+        Get details of a specific post
+        ---
+        tags:
+          - Posts
+        parameters:
+          - name: post_id
+            in: path
+            type: integer
+            required: true
+            description: ID of the post
+        responses:
+          200:
+            description: Post details
+          404:
+            description: Post not found
+        """
         post = Post.query.get(post_id)
 
         if not post:
@@ -73,6 +123,39 @@ class PostDetail(Resource):
 
     @jwt_required()
     def put(self, post_id):
+        """
+        Update a post
+        ---
+        tags:
+          - Posts
+        security:
+          - BearerAuth: []
+        parameters:
+          - name: post_id
+            in: path
+            type: integer
+            required: true
+            description: ID of the post
+          - in: body
+            name: body
+            required: false
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+        responses:
+          200:
+            description: Post updated successfully
+          400:
+            description: No data provided
+          403:
+            description: Only edit your own posts
+          404:
+            description: Post not found
+        """
         current_user_id = get_jwt_identity()
         post = Post.query.get(post_id)
 
@@ -100,6 +183,27 @@ class PostDetail(Resource):
 
     @jwt_required()
     def delete(self, post_id):
+        """
+        Delete a post
+        ---
+        tags:
+          - Posts
+        security:
+          - BearerAuth: []
+        parameters:
+          - name: post_id
+            in: path
+            type: integer
+            required: true
+            description: ID of the post
+        responses:
+          200:
+            description: Post deleted successfully
+          403:
+            description: Not authorized to delete this post
+          404:
+            description: Post not found
+        """
         current_user_id = get_jwt_identity()
         claims = get_jwt()
         post = Post.query.get(post_id)

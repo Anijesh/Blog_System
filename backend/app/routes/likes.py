@@ -10,6 +10,27 @@ class PostLike(Resource):
 
     @jwt_required()
     def post(self, post_id):
+        """
+        Like a post
+        ---
+        tags:
+          - Likes
+        security:
+          - BearerAuth: []
+        parameters:
+          - name: post_id
+            in: path
+            type: integer
+            required: true
+            description: ID of the post
+        responses:
+          201:
+            description: Post liked
+          400:
+            description: Already liked
+          404:
+            description: Post not found
+        """
         user_id = int(get_jwt_identity())
 
         post = Post.query.get(post_id)
@@ -28,6 +49,25 @@ class PostLike(Resource):
     
     @jwt_required()
     def delete(self, post_id):
+        """
+        Unlike a post
+        ---
+        tags:
+          - Likes
+        security:
+          - BearerAuth: []
+        parameters:
+          - name: post_id
+            in: path
+            type: integer
+            required: true
+            description: ID of the post
+        responses:
+          200:
+            description: Post unliked
+          404:
+            description: Like not found
+        """
         user_id = get_jwt_identity()
 
         like = Like.query.filter_by(user_id=user_id, post_id=post_id).first()
@@ -41,6 +81,21 @@ class PostLike(Resource):
 
 class PostLikeList(Resource):
     def get(self, post_id):
+        """
+        Get list of users who liked a post
+        ---
+        tags:
+          - Likes
+        parameters:
+          - name: post_id
+            in: path
+            type: integer
+            required: true
+            description: ID of the post
+        responses:
+          200:
+            description: A list of users and total likes
+        """
         likes = Like.query.filter_by(post_id=post_id).all()
         result = []
         for like in likes:

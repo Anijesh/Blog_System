@@ -9,6 +9,23 @@ from app import db
 
 class CommentList(Resource):
     def get(self,post_id):
+        """
+        Get comments for a post
+        ---
+        tags:
+          - Comments
+        parameters:
+          - name: post_id
+            in: path
+            type: integer
+            required: true
+            description: ID of the post
+        responses:
+          200:
+            description: List of comments
+          404:
+            description: Post not found
+        """
         post = Post.query.get(post_id)
         if not post:
             return{"message": "Post not found"},404
@@ -28,6 +45,35 @@ class CommentList(Resource):
 
     @jwt_required()
     def post(self, post_id):
+        """
+        Add a comment to a post
+        ---
+        tags:
+          - Comments
+        security:
+          - BearerAuth: []
+        parameters:
+          - name: post_id
+            in: path
+            type: integer
+            required: true
+            description: ID of the post
+          - in: body
+            name: body
+            required: true
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+        responses:
+          201:
+            description: Comment added successfully
+          400:
+            description: No data provided or Content is required
+          404:
+            description: Post not found
+        """
         post = Post.query.get(post_id)
         if not post:
             return {"message": "Post not found"}, 404
@@ -53,6 +99,37 @@ class CommentDetail(Resource):
 
     @jwt_required()
     def put(self, comment_id):
+        """
+        Update a comment
+        ---
+        tags:
+          - Comments
+        security:
+          - BearerAuth: []
+        parameters:
+          - name: comment_id
+            in: path
+            type: integer
+            required: true
+            description: ID of the comment
+          - in: body
+            name: body
+            required: true
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+        responses:
+          200:
+            description: Comment updated successfully
+          400:
+            description: No data provided
+          403:
+            description: Unauthorized to edit
+          404:
+            description: Comment not found
+        """
         current_user_id = get_jwt_identity()
         comment = Comment.query.get(comment_id)
         if not comment:
@@ -73,6 +150,27 @@ class CommentDetail(Resource):
 
     @jwt_required()
     def delete(self, comment_id):
+        """
+        Delete a comment
+        ---
+        tags:
+          - Comments
+        security:
+          - BearerAuth: []
+        parameters:
+          - name: comment_id
+            in: path
+            type: integer
+            required: true
+            description: ID of the comment
+        responses:
+          200:
+            description: Comment deleted successfully
+          403:
+            description: Unauthorized to delete
+          404:
+            description: Comment not found
+        """
         current_user_id = get_jwt_identity()
         claims = get_jwt()
         role = claims.get("role")

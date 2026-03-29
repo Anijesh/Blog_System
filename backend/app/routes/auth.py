@@ -6,6 +6,32 @@ from app.models.user import User
 
 class AuthRegister(Resource):
     def post(self):
+        """
+        Register a new user
+        ---
+        tags:
+          - Authentication
+        parameters:
+          - in: body
+            name: body
+            required: true
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+        responses:
+          201:
+            description: User registered successfully
+          400:
+            description: No data provided
+          409:
+            description: Email already registered
+        """
         data = request.get_json()
 
         if not data:
@@ -33,6 +59,30 @@ class AuthRegister(Resource):
 
 class AuthLogin(Resource):
     def post(self):
+        """
+        Login a user
+        ---
+        tags:
+          - Authentication
+        parameters:
+          - in: body
+            name: body
+            required: true
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+        responses:
+          200:
+            description: Login successful
+          400:
+            description: No data provided
+          401:
+            description: Invalid email or password
+        """
         data = request.get_json()
 
         if not data:
