@@ -35,6 +35,7 @@ def create_app():
     from app.routes.admin import AdminUserList
     from app.routes.admin import AdminUserDelete
     from app.routes.user import UserProfile
+    from app.routes.likes import PostLike
 
     from app.models.user import User
     from app.models.post import Post
@@ -49,5 +50,6 @@ def create_app():
     api.add_resource(AdminUserList,'/api/v1/admin/users')
     api.add_resource(AdminUserDelete,'/api/v1/admin/users/<user_id>')
     api.add_resource(UserProfile,'/api/v1/user')
+    api.add_resource(PostLike,'/api/v1/posts/<post_id>/like')
 
     return app
